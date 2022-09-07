@@ -1,0 +1,20 @@
+List of existing indexes that should be deleted.
+
+
+heroes table
+ - idx_heroes_on_email_address 
+ - idx_heroes_on_name 
+ - idx_last_visited_url 
+
+countries table (small/fixed table)
+ - idx_countries_abbreviated_name 
+
+certificates
+ - idx_certificates_on_created_by_hero_id
+ - idx_certificates_on_is_archived 
+
+certificate_issuers
+- fk_certificate_issuers_hero_id_idx 
+
+
+
