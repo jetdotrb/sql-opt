@@ -1,0 +1,62 @@
+# Set column "id" as primary key in certificates table
+ALTER TABLE `certificates`
+CHANGE COLUMN `id` `id` INT (11) NOT NULL,
+ADD PRIMARY KEY (`id`);
+
+# Add column `authorized_by_hero_id` as foreign key in `certificate_issuers` table
+ALTER TABLE `certificate_issuers`
+	ADD CONSTRAINT `fk_certificate_issuers_authorized_by_hero_id_on_heroes_id`
+    FOREIGN KEY (`authorized_by_hero_id`)
+    REFERENCES `heroes` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    
+# Add column `certificate_id` as foreign key in `certificate_issuers` table
+ALTER TABLE `certificate_issuers`
+	ADD CONSTRAINT `fk_certificate_issuers_certificate_id_on_certificates_id`
+    FOREIGN KEY (`certificate_id`)
+    REFERENCES `certificates` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    
+# Add column `hero_id` as foreign key in `certificate_issuers` table
+ALTER TABLE `certificate_issuers`
+	ADD CONSTRAINT `fk_certificate_issuers_hero_id_on_heroes_id`
+    FOREIGN KEY (`hero_id`)
+    REFERENCES `heroes` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    
+# Add column `created_by_hero_id` as foreign key in `certificates` table
+ALTER TABLE `certificates`
+	ADD CONSTRAINT `fk_created_by_hero_id_on_heroes_id`
+    FOREIGN KEY (`created_by_hero_id`)
+    REFERENCES `heroes` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    
+# Add column `awarded_by_hero_id` as foreign key in `certified_heroes` table
+ALTER TABLE `certified_heroes`
+	ADD CONSTRAINT `fk_awarded_by_hero_id_on_heroes_id`
+    FOREIGN KEY (`awarded_by_hero_id`)
+    REFERENCES `heroes` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    
+# Add column `awarded_to_hero_id` as foreign key in `certified_heroes` table
+ALTER TABLE `certified_heroes`
+	ADD CONSTRAINT `fk_awarded_to_hero_id_on_heroes_id`
+    FOREIGN KEY (`awarded_to_hero_id`)
+    REFERENCES `heroes` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    
+# Add column `certificate_id` as foreign key in `certified_heroes` table
+ALTER TABLE `certified_heroes`
+	ADD CONSTRAINT `fk_certificate_id_on_certificates_id`
+    FOREIGN KEY (`certificate_id`)
+    REFERENCES `certificates` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION;
+    
+
