@@ -34,7 +34,6 @@ GROUP BY comment_id;
 
 # 4. Refactor the ff. query (Pro tip: Understand what's happening in subquery first):
 EXPLAIN SELECT
-	TIMESTAMPDIFF(SECOND, hero_answers.started_at, hero_answers.completed_at),
 	hero_answers.hero_id, hero_answers.score as hero_score, hero_answers.id, 
     hero_answers.challenge_id, hero_answers.answer_json,
     hero_answers.is_answer_unlocked, hero_answers.cache_upvotes_count, hero_answers.cache_downvotes_count,
@@ -45,13 +44,13 @@ FROM
 INNER JOIN heroes ON hero_answers.hero_id = heroes.id
 LEFT JOIN countries ON countries.id = heroes.country_id
 WHERE hero_answers.id IN (
-    SELECT max(hero_answers.id) AS hero_answer_id
-    FROM hero_answers
-    INNER JOIN heroes ON hero_answers.hero_id = heroes.id
-    WHERE hero_answers.challenge_id = 701
-    AND heroes.hero_name NOT LIKE '%v88'
-    AND score >= 3
-    GROUP BY heroes.id
+	SELECT max(hero_answers.id) AS hero_answer_id
+	FROM hero_answers
+	INNER JOIN heroes ON hero_answers.hero_id = heroes.id
+	WHERE hero_answers.challenge_id = 701
+	AND heroes.hero_name NOT LIKE '%v88'
+	AND score >= 3
+	GROUP BY heroes.id
 )
 ORDER BY TIMESTAMPDIFF(SECOND, hero_answers.started_at, hero_answers.completed_at) DESC;
 
@@ -59,9 +58,8 @@ ORDER BY TIMESTAMPDIFF(SECOND, hero_answers.started_at, hero_answers.completed_a
 #SELECT COUNT(*) as hero_count FROM heroes;
 #SELECT COUNT(*) as follower_count FROM hero_follows WHERE following_hero_id = 23;
 
-SELECT * 
-FROM 
-(SELECT COUNT(*) as hero_count FROM heroes) as table1, 
-(SELECT COUNT(*) as follower_count FROM hero_follows WHERE following_hero_id = 23) as tables2;
+EXPLAIN SELECT 
+(SELECT COUNT(*) FROM heroes) as hero_count, 
+(SELECT COUNT(*) FROM hero_follows WHERE following_hero_id = 23) as hero_followers;
 
 
