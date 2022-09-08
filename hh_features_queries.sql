@@ -2,7 +2,7 @@
 # before
 EXPLAIN SELECT * 
 FROM `hh_features_before`.`heroes` 
-WHERE find_in_set(id, '1,3,5,7,9,15,16, 20');
+WHERE find_in_set(id, '1,3,5,7,9,15,16,20');
 # after
 EXPLAIN SELECT * 
 FROM `hh_features`.`heroes` 
@@ -26,7 +26,7 @@ ORDER BY created_at DESC
 LIMIT 10;
 #after
 EXPLAIN SELECT * 
-FROM `hh_features_before`.`heroes`  
+FROM `hh_features`.`heroes`  
 ORDER BY id DESC 
 LIMIT 10;
 
@@ -50,7 +50,7 @@ AND hero_answers.challenge_id = 491;
 #after
 EXPLAIN SELECT heroes.*
 FROM `hh_features`.`heroes` 
-INNER JOIN `hh_features`.`hero_answers` ON hero_answers.hero_id = heroes.id 
+INNER JOIN `hh_features`.`hero_answers` ON heroes.id = hero_answers.hero_id
 AND hero_answers.challenge_id = 491;
 
 # 6.) In recruitment page, if we want to search for topnotch users, what is the best query to get the list of users who live in the Philippines with hero level greater than or equal to 9? The user’s name, level, and their country should be displayed on the list.
@@ -62,12 +62,12 @@ WHERE hero_level >= 9 AND countries.name = 'Philippines';
 #after
 EXPLAIN SELECT heroes.first_name, heroes.last_name, heroes.hero_level, countries.name AS country_name
 FROM `hh_features`.`heroes`
-LEFT JOIN `hh_features`.`countries` ON countries.id = heroes.country_id
-WHERE hero_level >= 9 AND countries.name = 'Philippines';
+INNER JOIN `hh_features`.`countries` ON heroes.country_id = countries.id
+WHERE heroes.country_id = 177 AND heroes.hero_level >= 9;
 
 # 7.) For the admin page, what is the most efficient query to get the list of users who successfully paid the subscription activated between April 1-30, 2020?
 EXPLAIN SELECT heroes.*
 FROM `hh_features`.`heroes`
-INNER JOIN `hh_features`.`subscriptions` ON subscriptions.hero_id = heroes.id
-INNER JOIN `hh_features`.`payments` ON payments.id = subscriptions.payment_id
-WHERE payments.is_charged = 1  AND subscriptions.start_date BETWEEN '2020-04-01' and '2020-04-30';
+INNER JOIN `hh_features`.`subscriptions` ON heroes.id = subscriptions.hero_id 
+INNER JOIN `hh_features`.`payments` ON subscriptions.payment_id = payments.id 
+WHERE payments.is_charged = 1 AND subscriptions.start_date >= '2020-04-01 00:00:00' AND subscriptions.start_date <=  '2020-04-30 23:59:59'; 
