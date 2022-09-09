@@ -31,40 +31,19 @@ FROM hh_subquery_or_not.hero_game_summaries
 WHERE id = 1674;
 
 # 6.) Convert the following query to more readable JSON select.
-SELECT   
-    CAST(CONCAT('{',
-        GROUP_CONCAT(CONCAT('"',game_ratings.star_rating,'":', game_ratings.total_raters)),
-        ',"total":', SUM(game_ratings.total_raters),
-        ',"avg":', FORMAT(SUM(game_ratings.avg_rating) / SUM(game_ratings.total_raters), 2),
-        ',"min_units_rate":', MIN(game_ratings.min_units_rate)
-    ,'}') AS CHAR(1000)) as game_ratings_json
-FROM (
-    SELECT star_rating, COUNT(*) as total_raters, (star_rating * COUNT(*)) as avg_rating, 
-        JSON_EXTRACT(games.cache_ratings_json, '$.min_units_rate') as min_units_rate
-    FROM game_ratings
-    INNER JOIN games ON games.id = game_ratings.game_id
-    WHERE game_ratings.game_id = 9
-    GROUP BY star_rating
-) as game_ratings;
-
-
-SELECT   
-  JSON_OBJECT(
-	game_ratings.star_rating, game_ratings.total_raters,
-	"total", SUM(game_ratings.total_raters),
-	"avg", FORMAT(SUM(game_ratings.avg_rating) / SUM(game_ratings.total_raters), 2), 
-	"min_units_rate", MIN(game_ratings.min_units_rate)
+SELECT
+	JSON_MERGE_PATCH(
+		JSON_OBJECTAGG(game_ratings.star_rating, game_ratings.total_raters),
+		JSON_OBJECT('total', SUM(game_ratings.total_raters), 'avg', FORMAT(SUM(game_ratings.avg_rating) / SUM(game_ratings.total_raters), 2), 'min_units_rate', MIN(game_ratings.min_units_rate))
     ) AS game_ratings_json
 FROM (
-    SELECT star_rating, COUNT(*) as total_raters, (star_rating * COUNT(*)) as avg_rating, 
-        JSON_EXTRACT(games.cache_ratings_json, '$.min_units_rate') as min_units_rate
+	SELECT star_rating, COUNT(*) as total_raters, (star_rating * COUNT(*)) as avg_rating, 
+    JSON_EXTRACT(games.cache_ratings_json, '$.min_units_rate') as min_units_rate
     FROM game_ratings
     INNER JOIN games ON games.id = game_ratings.game_id
     WHERE game_ratings.game_id = 9
     GROUP BY star_rating
 ) as game_ratings;
-
-
 
 -- PART 2 
 # add order_items_json in orders table
