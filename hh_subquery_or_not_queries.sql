@@ -4,8 +4,9 @@ FROM heroes
 WHERE hero_level IN (
 	SELECT hero_level
     FROM heroes
-	WHERE id = 109
+	WHERE id = 109 
 );
+
 #EXPLAIN SELECT h1.hero_name, h1.first_name, h1.last_name, h1.hero_level
 #FROM heroes h1, heroes h2
 #WHERE h1.hero_level = h2.hero_level AND h2.id = 109;
@@ -13,7 +14,10 @@ WHERE hero_level IN (
 # 2. Write the query to display hero name, first name, last name, hero level of the user with highest hero level. (Hint: 35 rows)
 EXPLAIN SELECT hero_name, first_name, last_name, hero_level
 FROM heroes
-WHERE hero_level >= 9;
+WHERE hero_level = (
+	SELECT hero_level FROM heroes ORDER BY hero_level DESC LIMIT 1
+);
+
 
 # 3. Simplify the ff. query:
 #before
@@ -33,6 +37,30 @@ WHERE is_upvote = 1
 GROUP BY comment_id;
 
 # 4. Refactor the ff. query (Pro tip: Understand what's happening in subquery first):
+#before
+EXPLAIN SELECT
+	hero_answers.hero_id, hero_answers.score as hero_score, hero_answers.id, 
+    hero_answers.challenge_id, hero_answers.answer_json,
+    hero_answers.is_answer_unlocked, hero_answers.cache_upvotes_count, hero_answers.cache_downvotes_count,
+    TIMESTAMPDIFF(SECOND, hero_answers.started_at,hero_answers.completed_at) as time_spent,
+    heroes.hero_name, heroes.country_id, countries.flag_url as hero_flag_url, hero_answers.id AS hero_answer_id
+FROM
+	hero_answers
+LEFT JOIN heroes 
+ON heroes.id = hero_answers.hero_id
+LEFT JOIN countries 
+	ON heroes.country_id = countries.id
+WHERE hero_answers.id IN (
+    SELECT max(hero_answers.id) AS hero_answer_id
+    FROM hero_answers
+    INNER JOIN heroes ON heroes.id = hero_answers.hero_id
+    WHERE hero_answers.challenge_id = 701
+    AND heroes.hero_name NOT LIKE '%v88'
+    AND score >= 3
+    GROUP BY heroes.id
+)
+ORDER BY TIMESTAMPDIFF(SECOND, hero_answers.started_at, hero_answers.completed_at) DESC;
+#after
 EXPLAIN SELECT
 	hero_answers.hero_id, hero_answers.score as hero_score, hero_answers.id, 
     hero_answers.challenge_id, hero_answers.answer_json,
@@ -42,17 +70,12 @@ EXPLAIN SELECT
 FROM
 	hero_answers
 INNER JOIN heroes ON hero_answers.hero_id = heroes.id
-LEFT JOIN countries ON countries.id = heroes.country_id
-WHERE hero_answers.id IN (
-	SELECT max(hero_answers.id) AS hero_answer_id
-	FROM hero_answers
-	INNER JOIN heroes ON hero_answers.hero_id = heroes.id
-	WHERE hero_answers.challenge_id = 701
-	AND heroes.hero_name NOT LIKE '%v88'
-	AND score >= 3
-	GROUP BY heroes.id
-)
-ORDER BY TIMESTAMPDIFF(SECOND, hero_answers.started_at, hero_answers.completed_at) DESC;
+INNER JOIN countries ON heroes.country_id = countries.id
+WHERE hero_answers.challenge_id = 701
+AND heroes.hero_name NOT LIKE '%v88'
+AND hero_answers.score >= 3
+GROUP BY heroes.id
+ORDER BY time_spent DESC;
 
 # 5. Convert by writing one query to eliminate twice database call in the backend (Hint: There are 3 SELECTs in one query):
 #SELECT COUNT(*) as hero_count FROM heroes;
