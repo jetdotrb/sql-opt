@@ -14,7 +14,7 @@ WHERE `id` = 1;
 
 # 3.) Create a query so that all game id less than 3 can have max_units_rate 15.
 UPDATE games
-SET `cache_ratings_json` = JSON_REPLACE(`cache_ratings_json`, '$.min_units_rate', 15) 
+SET `cache_ratings_json` = JSON_SET(`cache_ratings_json`, '$.max_units_rate', 15) 
 WHERE `id` < 3;
 
 # 4.) Get the average and total of ratings from game id 9.
@@ -25,6 +25,10 @@ FROM hh_subquery_or_not.games
 WHERE `id` = 9;
 
 # 5.) Get the module details in first module id of hero game summary id 1674.
+SELECT cache_progress_json
+FROM hh_subquery_or_not.hero_game_summaries 
+WHERE id = 1674;
+
 SELECT 
 	JSON_EXTRACT(cache_progress_json, CONCAT('$.modules.', JSON_EXTRACT(JSON_KEYS(cache_progress_json, '$.modules'), '$[0]'))) AS first_module_details
 FROM hh_subquery_or_not.hero_game_summaries 
@@ -32,9 +36,13 @@ WHERE id = 1674;
 
 # 6.) Convert the following query to more readable JSON select.
 SELECT
-	JSON_MERGE_PATCH(
+	JSON_MERGE_PRESERVE(
 		JSON_OBJECTAGG(game_ratings.star_rating, game_ratings.total_raters),
-		JSON_OBJECT('total', SUM(game_ratings.total_raters), 'avg', FORMAT(SUM(game_ratings.avg_rating) / SUM(game_ratings.total_raters), 2), 'min_units_rate', MIN(game_ratings.min_units_rate))
+		JSON_OBJECT(
+			'total', SUM(game_ratings.total_raters), 
+            'avg', FORMAT(SUM(game_ratings.avg_rating) / SUM(game_ratings.total_raters), 2), 
+            'min_units_rate', MIN(game_ratings.min_units_rate)
+		)
     ) AS game_ratings_json
 FROM (
 	SELECT star_rating, COUNT(*) as total_raters, (star_rating * COUNT(*)) as avg_rating, 
